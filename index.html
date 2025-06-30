@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betting Manager</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f4f4f4;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 100%;
+            width: 100%;
+            margin: 0 auto;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 1.5rem;
+            margin: 10px 0;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 3px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        input, button {
+            padding: 8px;
+            font-size: 0.9rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        input[type="number"], input[type="text"], input[type="file"] {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="checkbox"] {
+            width: auto;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .export-btn, .import-btn {
+            background-color: #007bff;
+            margin-top: 10px;
+        }
+        .export-btn:hover, .import-btn:hover {
+            background-color: #0056b3;
+        }
+        .bankroll-info, .system-info {
+            margin: 10px 0;
+            padding: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .bets-table-container {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            padding: 5px;
+            font-size: 0.8rem;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .notification {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+        .notification.success {
+            background-color: #28a745;
+        }
+        .notification.error {
+            background-color: #dc3545;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 8px;
+            }
+            h1 {
+                font-size: 1.2rem;
+            }
+            label, input, button {
+                font-size: 0.8rem;
+            }
+            .bankroll-info, .system-info {
+                font-size: 0.8rem;
+            }
+            table {
+                font-size: 0.75rem;
+            }
+            th, td {
+                padding: 4px;
+            }
+            .delete-btn {
+                font-size: 0.7rem;
+                padding: 4px;
+            }
+            .notification {
+                font-size: 0.8rem;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Betting Manager</h1>
+        <div class="form-group">
+            <label for="bankroll">Начальный банкролл ($):</label>
+            <input v-model.number="initialBankroll" type="number" id="bankroll" placeholder="Введите банкролл">
+        </div>
+        <div class="form-group">
+            <label for="odds">Коэффициент:</label>
+            <input v-model.number="odds" type="number" step="0.01" id="odds" placeholder="Введите коэффициент">
+        </div>
+        <div class="form-group">
+            <label for="probability">Вероятность (%):</label>
+            <input v-model.number="probability" type="number" id="probability" placeholder="Введите вероятность">
+        </div>
+        <div class="form-group">
+            <label for="customBet">Произвольная сумма ставки ($, опционально):</label>
+            <input v-model.number="customBet" type="number" id="customBet" placeholder="Введите сумму ставки">
+        </div>
+        <button @click="addBet">Добавить ставку</button>
+        <button class="export-btn" @click="exportToTxt">Экспорт в TXT</button>
+        <div class="form-group">
+            <label for="importFile">Загрузить bets.txt:</label>
+            <input type="file" id="importFile" accept=".txt" @change="importFromTxt">
+        </div>
+        <div class="bankroll-info">
+            <p>Рекомендуемая сумма ставки: {{ recommendedBet }}$</p>
+            <p>Текущий банкролл: {{ currentBankroll.toFixed(2) }}$</p>
+        </div>
+        <div class="system-info" v-if="bets.length">
+            <h3>Информация о системе</h3>
+            <p>Суммарный коэффициент: {{ systemOdds.toFixed(2) }}</p>
+            <p>Проходимость системы: {{ systemProbability.toFixed(2) }}%</p>
+        </div>
+        <div class="bets-table-container" v-if="bets.length">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Коэф.</th>
+                        <th>Вероят. (%)</th>
+                        <th>Рек. ($)</th>
+                        <th>Факт. ($)</th>
+                        <th>Выигр.</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(bet, index) in bets" :key="index">
+                        <td>{{ bet.odds }}</td>
+                        <td>{{ bet.probability }}</td>
+                        <td>{{ bet.recommendedBet.toFixed(2) }}</td>
+                        <td>{{ bet.customBet ? bet.customBet.toFixed(2) : bet.recommendedBet.toFixed(2) }}</td>
+                        <td><input type="checkbox" v-model="bet.won" @change="saveBets"></td>
+                        <td><button class="delete-btn" @click="deleteBet(index)">Удалить</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div v-if="notification" class="notification" :class="notification.type">
+            {{ notification.message }}
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                initialBankroll: 1000,
+                odds: null,
+                probability: null,
+                customBet: null,
+                bets: [],
+                notification: null
+            },
+            computed: {
+                recommendedBet() {
+                    if (this.odds && this.probability) {
+                        const p = this.probability / 100;
+                        const q = 1 - p;
+                        const kellyFraction = (p * (this.odds - 1) - q) / (this.odds - 1);
+                        return kellyFraction > 0 ? (this.initialBankroll * kellyFraction).toFixed(2) : 0;
+                    }
+                    return 0;
+                },
+                currentBankroll() {
+                    return this.bets.reduce((acc, bet) => {
+                        const betAmount = bet.customBet ? bet.customBet : bet.recommendedBet;
+                        const winnings = bet.won ? betAmount * bet.odds : 0;
+                        return acc - betAmount + winnings;
+                    }, this.initialBankroll);
+                },
+                systemOdds() {
+                    return this.bets.reduce((acc, bet) => acc * bet.odds, 1);
+                },
+                systemProbability() {
+                    return this.bets.reduce((acc, bet) => acc * (bet.probability / 100), 1) * 100;
+                }
+            },
+            methods: {
+                addBet() {
+                    if (this.odds && this.probability) {
+                        const bet = {
+                            odds: this.odds,
+                            probability: this.probability,
+                            recommendedBet: parseFloat(this.recommendedBet),
+                            customBet: this.customBet ? parseFloat(this.customBet) : null,
+                            won: false
+                        };
+                        this.bets.push(bet);
+                        this.saveBets();
+                        this.odds = null;
+                        this.probability = null;
+                        this.customBet = null;
+                        this.showNotification('Ставка добавлена', 'success');
+                    } else {
+                        this.showNotification('Введите коэффициент и вероятность', 'error');
+                    }
+                },
+                deleteBet(index) {
+                    this.bets.splice(index, 1);
+                    this.saveBets();
+                    this.showNotification('Ставка удалена', 'success');
+                },
+                saveBets() {
+                    localStorage.setItem('bets', JSON.stringify(this.bets));
+                    localStorage.setItem('initialBankroll', this.initialBankroll);
+                },
+                loadBets() {
+                    const savedBets = localStorage.getItem('bets');
+                    const savedBankroll = localStorage.getItem('initialBankroll');
+                    if (savedBets) {
+                        this.bets = JSON.parse(savedBets);
+                    }
+                    if (savedBankroll) {
+                        this.initialBankroll = parseFloat(savedBankroll);
+                    }
+                },
+                exportToTxt() {
+                    const betsContent = this.bets.map((bet, index) => 
+                        `Ставка ${index + 1}: Коэффициент: ${bet.odds}, Вероятность: ${bet.probability}%, Рекомендуемая ставка: ${bet.recommendedBet.toFixed(2)}${bet.customBet ? `, Фактическая ставка: ${bet.customBet.toFixed(2)}$` : ''}, Статус: ${bet.won ? 'Выиграла' : 'Не выиграла'}`
+                    ).join('\n');
+                    const systemContent = this.bets.length ? `\n\nСистема:\nСуммарный коэффициент: ${this.systemOdds.toFixed(2)}\nПроходимость системы: ${this.systemProbability.toFixed(2)}%` : '';
+                    const bankrollContent = `\n\nБанкролл:\nНачальный банкролл: ${this.initialBankroll.toFixed(2)}$\nТекущий банкролл: ${this.currentBankroll.toFixed(2)}$`;
+                    const textContent = betsContent + systemContent + bankrollContent;
+                    const blob = new Blob([textContent], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'bets.txt';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    this.showNotification('Файл экспортирован', 'success');
+                },
+                importFromTxt(event) {
+                    const file = event.target.files[0];
+                    if (!file || !file.name.endsWith('.txt')) {
+                        this.showNotification('Выберите файл .txt', 'error');
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const content = e.target.result;
+                            const lines = content.split('\n').filter(line => line.trim());
+                            const bets = [];
+                            let initialBankroll = 1000; // Значение по умолчанию, если не найден банкролл
+
+                            for (const line of lines) {
+                                if (line.startsWith('Ставка')) {
+                                    const betMatch = line.match(/Ставка \d+: Коэффициент: ([\d.]+), Вероятность: ([\d.]+)%, Рекомендуемая ставка: ([\d.]+)(?:, Фактическая ставка: ([\d.]+))?, Статус: (Выиграла|Не выиграла)/);
+                                    if (betMatch) {
+                                        bets.push({
+                                            odds: parseFloat(betMatch[1]),
+                                            probability: parseFloat(betMatch[2]),
+                                            recommendedBet: parseFloat(betMatch[3]),
+                                            customBet: betMatch[4] ? parseFloat(betMatch[4]) : null,
+                                            won: betMatch[5] === 'Выиграла'
+                                        });
+                                    }
+                                } else if (line.startsWith('Начальный банкролл')) {
+                                    const bankrollMatch = line.match(/Начальныйਮ
+
+System: * Today's date and time is 09:49 AM PDT on Monday, June 30, 2025.
