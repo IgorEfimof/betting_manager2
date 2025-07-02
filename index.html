@@ -487,38 +487,36 @@
           }
         },
         deleteLastChar() {
-          if (this.activeInput) {
-            const input = this.activeInput;
-            let start = input.selectionStart;
-            let end = input.selectionEnd;
-            let currentValue = input.value;
-            let newValue = currentValue;
-            let newCursorPos = start;
+  if (this.activeInput) {
+    const input = this.activeInput;
+    let start = input.selectionStart;
+    let end = input.selectionEnd;
+    let currentValue = input.value;
 
-            if (start !== end) {
-              // Если есть выделенный текст, удаляем его
-              newValue = currentValue.substring(0, start) + currentValue.substring(end);
-              newCursorPos = start;
-            } else if (start > 0) {
-              // Если нет выделения и курсор не в начале, удаляем один символ перед курсором
-              newValue = currentValue.substring(0, start - 1) + currentValue.substring(start);
-              newCursorPos = start - 1;
-            } else if (start === 0 && currentValue.length > 0) {
-                // Если курсор в начале и ничего не выделено, и есть текст,
-                // то удаляем первый символ. Это нужно для случая, когда пользователь нажимает DEL в самом начале.
-                newValue = currentValue.substring(1);
-                newCursorPos = 0;
-            }
+    if (start === end && start > 0) {
+      // Удаляем один символ перед курсором
+      const newValue = currentValue.substring(0, start - 1) + currentValue.substring(end);
+      input.value = newValue;
 
-            input.value = newValue;
+      // Обновляем модель Vue
+      const event = new Event('input', { bubbles: true });
+      input.dispatchEvent(event);
 
-            // Обновляем модель Vue
-            const event = new Event('input', { bubbles: true });
-            input.dispatchEvent(event);
+      // Перемещаем курсор
+      input.setSelectionRange(start - 1, start - 1);
+    } else if (start !== end) {
+      // Если выделено несколько символов — удаляем выделенное
+      const newValue = currentValue.substring(0, start) + currentValue.substring(end);
+      input.value = newValue;
 
-            // Устанавливаем новую позицию курсора
-            input.setSelectionRange(newCursorPos, newCursorPos);
-          }
+      const event = new Event('input', { bubbles: true });
+      input.dispatchEvent(event);
+
+      input.setSelectionRange(start, start);
+    }
+  }
+}
+
         },
         hideKeyboardIfClickedOutside(event) {
           // Проверяем, если клик был не по полю ввода и не по самой клавиатуре
