@@ -196,16 +196,14 @@
       background-color: #666; /* Темнее при наведении */
     }
 
-    /* Кнопка "Скрыть" удалена, эти стили больше не нужны */
-    /* .numeric-keyboard .keyboard-hide-btn {
-      background-color: #007bff;
-      flex: none;
-      width: calc(100% - 20px);
+    /* Стиль для кнопки DEL */
+    .numeric-keyboard button.del-button {
+      background-color: #dc3545; /* Красный цвет */
     }
 
-    .numeric-keyboard .keyboard-hide-btn:hover {
-      background-color: #0056b3;
-    } */
+    .numeric-keyboard button.del-button:hover {
+      background-color: #c82333; /* Темнее красный при наведении */
+    }
 
     /* Дополнительные стили для активного поля ввода */
     input:focus {
@@ -296,9 +294,9 @@
       <div class="keyboard-row">
         <button @click="appendNumber('.')">.</button>
         <button @click="appendNumber('0')">0</button>
-        <button @click="deleteLastChar">DEL</button>
+        <button @click="deleteLastChar" class="del-button">DEL</button>
       </div>
-      </div>
+    </div>
   </div>
 
   <script>
@@ -481,7 +479,6 @@
             input.value = newValue;
 
             // Обновляем модель Vue напрямую для активного поля
-            // Создаем новый Event, чтобы v-model корректно обновил данные
             const event = new Event('input', { bubbles: true });
             input.dispatchEvent(event);
 
@@ -506,6 +503,11 @@
               // Если нет выделения и курсор не в начале, удаляем один символ перед курсором
               newValue = currentValue.substring(0, start - 1) + currentValue.substring(start);
               newCursorPos = start - 1;
+            } else if (start === 0 && currentValue.length > 0) {
+                // Если курсор в начале и ничего не выделено, и есть текст,
+                // то удаляем первый символ. Это нужно для случая, когда пользователь нажимает DEL в самом начале.
+                newValue = currentValue.substring(1);
+                newCursorPos = 0;
             }
 
             input.value = newValue;
