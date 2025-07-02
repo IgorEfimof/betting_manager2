@@ -308,54 +308,60 @@
                     this.showNotification('Файл экспортирован', 'success');
                 },
                 importFromTxt(event) {
-                    const file = event.target.files[0];
-                    if (!file || !file.name.endsWith('.txt')) {
-                        this.showNotification('Выберите файл .txt', 'error');
-                        return;
+    const file = event.target.files[0];
+    if (!file || !file.name.endsWith('.txt')) {
+        this.showNotification('Выберите файл .txt', 'error');
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const content = e.target.result;
+            const lines = content.split('\n').filter(line => line.trim());
+            const bets = [];
+            let initialBankroll = 1000; // Значение по умолчанию
+
+            for (const line of lines) {
+                if (line.startsWith('Ставка')) {
+                    const betMatch = line.match(/Ставка \d+: Коэффициент: ([\d.]+), Вероятность: ([\d.]+)%, Рекомендуемая ставка: ([\d.]+), Фактическая ставка: ([\d.]*), Выиграла: (.*)/);
+                    if (betMatch) {
+                        bets.push({
+                            odds: parseFloat(betMatch[1]),
+                            probability: parseFloat(betMatch[2]),
+                            recommendedBet: parseFloat(betMatch[3]),
+                            customBet: betMatch[4] ? parseFloat(betMatch[4]) : null,
+                            won: betMatch[5].trim() === 'true'
+                        });
+                    } else {
+                        console.error('Неверный формат строки ставки:', line);
+                        this.showNotification('Ошибка: Неверный формат строки ставки', 'error');
                     }
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        try {
-                            const content = e.target.result;
-                            const lines = content.split('\n').filter(line => line.trim());
-                            const bets = [];
-                            let initialBankroll = 1000; // Значение по умолчанию
+                } else if (line.startsWith('Начальный банкролл')) {
+                    const bankrollMatch = line.match(/Начальный банкролл: ([\d.]+)\$/);
+                    if (bankrollMatch) {
+                        initialBankroll = parseFloat(bankrollMatch[1]);
+                    } else {
+                        console.error('Неверный формат строки банкролла:', line);
+                        this.showNotification('Ошибка: Неверный формат строки банкролла', 'error');
+                    }
+                }
+            }
 
-                            for (const line of lines) {
-                                if (line.startsWith('Ставка')) {
-                                    const betMatch = line.match(/Ставка \d+: Коэффициент: ([\d.]+), Вероятность: ([\d.]+)%, Рекомендуемая ставка: ([\d.]+)(?:, Фактическая ставка: ([\d.]+))?, Статус: (Выиграла|Не выиграла)/);
-                                    if (betMatch) {
-                                        bets.push({
-                                            odds: parseFloat(betMatch[1]),
-                                            probability: parseFloat(betMatch[2]),
-                                            recommendedBet: parseFloat(betMatch[3]),
-                                            customBet: betMatch[4] ? parseFloat(betMatch[4]) : null,
-                                            won: betMatch[5] === 'Выиграла'
-                                        });
-                                    }
-                                } else if (line.startsWith('Начальный банкролл')) {
-                                    const bankrollMatch = line.match(/Начальный банкролл: ([\d.]+)\$/);
-                                    if (bankrollMatch) {
-                                        initialBankroll = parseFloat(bankrollMatch[1]);
-                                    }
-                                }
-                            }
-
-                            // Очищаем текущее состояние и обновляем
-                            this.$set(this, 'bets', bets);
-                            this.$set(this, 'initialBankroll', initialBankroll);
-                            this.saveBets();
-                            this.showNotification('Данные успешно загружены', 'success');
-                        } catch (error) {
-                            this.showNotification('Ошибка при загрузке файла: неверный формат', 'error');
-                            console.error(error);
-                        }
-                    };
-                    reader.onerror = () => {
-                        this.showNotification('Ошибка чтения файла', 'error');
-                    };
-                    reader.readAsText(file);
-                },
+            // Очищаем текущее состояние и обновляем с использованием $set
+            this.$set(this, 'bets', bets);
+            this.$set(this, 'initialBankroll', initialBankroll);
+            this.saveBets();
+            this.showNotification('Данные успешно загружены', 'success');
+        } catch (error) {
+            console.error('Ошибка при загрузке файла:', error);
+            this.showNotification('Ошибка при загрузке файла: неверный формат', 'error');
+        }
+    };
+    reader.onerror = () => {
+        this.showNotification('Ошибка чтения файла', 'error');
+    };
+    reader.readAsText(file);
+},
                 showNotification(message, type) {
                     this.notification = { message, type };
                     setTimeout(() => {
