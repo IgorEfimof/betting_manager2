@@ -330,7 +330,7 @@
                             probability: parseFloat(betMatch[2]),
                             recommendedBet: parseFloat(betMatch[3]),
                             customBet: betMatch[4] ? parseFloat(betMatch[4]) : null,
-                            won: betMatch[5].trim() === 'true'
+333|                        won: betMatch[5].trim() === 'true'
                         });
                     } else {
                         console.error('Неверный формат строки ставки:', line);
