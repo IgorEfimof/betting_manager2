@@ -6,13 +6,13 @@
     <title>Betting Manager</title>
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <style>
-9|         body {
-10|             font-family: Arial, sans-serif;
-11|             margin: 0;
-12|             padding: 5px;
-13|             background-color: #333; /* Или #36454F для более графитового */
-14|             overflow-x: hidden;
-15|         }
+      body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 5px;
+                background-color: #333; /* Или #36454F для более графитового */
+                overflow-x: hidden;
+         }
         .container {
             max-width: 100%;
             width: 100%;
@@ -26,22 +26,22 @@
         h1 {
             text-align: center;
             color: #fff; /* Изменено на белый */
-29|         font-size: 1.2rem;
+            font-size: 1.2rem;
             margin: 5px 0;
         }
         .form-group {
             margin-bottom: 5px;
         }
-        35|         label {
-36|             display: block;
-37|             margin-bottom: 2px;
-38|             font-weight: bold;
-39|             font-size: 0.8rem;
-40|             color: #fff; /* Изменено на белый */
-41|         }
+         label {
+               display: block;
+                margin-bottom: 2px;
+                font-weight: bold;
+                font-size: 0.8rem;
+                color: #fff; /* Изменено на белый */
+         }
         input, button {
             padding: 6px;
-44|         font-size: 0.8rem;
+            font-size: 0.8rem;
             width: 100%;
             box-sizing: border-box;
         }
@@ -307,7 +307,7 @@
                     URL.revokeObjectURL(url);
                     this.showNotification('Файл экспортирован', 'success');
                 },
-310|             importFromTxt(event) {
+             importFromTxt(event) {
     const file = event.target.files[0];
     if (!file || !file.name.endsWith('.txt')) {
         this.showNotification('Выберите файл .txt', 'error');
@@ -361,7 +361,7 @@
     };
     reader.readAsText(file);
 },
-364| },
+ },
                 showNotification(message, type) {
                     this.notification = { message, type };
                     setTimeout(() => {
