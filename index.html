@@ -196,15 +196,16 @@
       background-color: #666; /* Темнее при наведении */
     }
 
-    .numeric-keyboard .keyboard-hide-btn {
-      background-color: #007bff; /* Цвет кнопки "Скрыть" */
+    /* Кнопка "Скрыть" удалена, эти стили больше не нужны */
+    /* .numeric-keyboard .keyboard-hide-btn {
+      background-color: #007bff;
       flex: none;
-      width: calc(100% - 20px); /* Учитываем отступы по бокам */
+      width: calc(100% - 20px);
     }
 
     .numeric-keyboard .keyboard-hide-btn:hover {
       background-color: #0056b3;
-    }
+    } */
 
     /* Дополнительные стили для активного поля ввода */
     input:focus {
@@ -297,10 +298,7 @@
         <button @click="appendNumber('0')">0</button>
         <button @click="deleteLastChar">DEL</button>
       </div>
-      <div class="keyboard-row">
-        <button @click="hideKeyboard" class="keyboard-hide-btn">Скрыть</button>
       </div>
-    </div>
   </div>
 
   <script>
@@ -494,42 +492,38 @@
         deleteLastChar() {
           if (this.activeInput) {
             const input = this.activeInput;
-            const start = input.selectionStart;
-            const end = input.selectionEnd;
-            const currentValue = input.value;
+            let start = input.selectionStart;
+            let end = input.selectionEnd;
+            let currentValue = input.value;
+            let newValue = currentValue;
+            let newCursorPos = start;
 
-            if (start === end && start > 0) {
-              // Удаляем один символ перед курсором
-              let newValue = currentValue.substring(0, start - 1) + currentValue.substring(start);
-              input.value = newValue;
-
-              // Обновляем модель Vue
-              const event = new Event('input', { bubbles: true });
-              input.dispatchEvent(event);
-
-              // Перемещаем курсор на один символ назад
-              input.setSelectionRange(start - 1, start - 1);
-            } else if (start !== end) {
-              // Удаляем выделенный текст
-              let newValue = currentValue.substring(0, start) + currentValue.substring(end);
-              input.value = newValue;
-
-              // Обновляем модель Vue
-              const event = new Event('input', { bubbles: true });
-              input.dispatchEvent(event);
-
-              // Перемещаем курсор в начало удаленной области
-              input.setSelectionRange(start, start);
+            if (start !== end) {
+              // Если есть выделенный текст, удаляем его
+              newValue = currentValue.substring(0, start) + currentValue.substring(end);
+              newCursorPos = start;
+            } else if (start > 0) {
+              // Если нет выделения и курсор не в начале, удаляем один символ перед курсором
+              newValue = currentValue.substring(0, start - 1) + currentValue.substring(start);
+              newCursorPos = start - 1;
             }
+
+            input.value = newValue;
+
+            // Обновляем модель Vue
+            const event = new Event('input', { bubbles: true });
+            input.dispatchEvent(event);
+
+            // Устанавливаем новую позицию курсора
+            input.setSelectionRange(newCursorPos, newCursorPos);
           }
         },
         hideKeyboardIfClickedOutside(event) {
           // Проверяем, если клик был не по полю ввода и не по самой клавиатуре
-          // event.target.matches('input[type="number"], input[type="text"]')
-          // Можно также использовать проверку activeInput
+          // и клавиатура в данный момент показана
           if (this.showKeyboard &&
               !event.target.closest('.numeric-keyboard') &&
-              (!this.activeInput || event.target !== this.activeInput)) {
+              !event.target.matches('input[type="number"], input[type="text"]')) {
             this.hideKeyboard();
           }
         }
