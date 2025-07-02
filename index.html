@@ -172,7 +172,7 @@
             <label for="customBet">Произвольная сумма ставки ($, опционально):</label>
             <input v-model.number="customBet" type="number" id="customBet" placeholder="Введите сумму ставки">
         </div>
-        <button @click="addBet">Добавить ставку</button>
+        <button @click="addBet" class="export-btn">Добавить ставку</button>
         <button class="export-btn" @click="exportToTxt">Экспорт в TXT</button>
         <div class="form-group">
             <label for="importFile">Загрузить bets.txt:</label>
