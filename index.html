@@ -75,7 +75,7 @@
       margin: 5px 0;
       padding: 6px;
       color: #fff; /* Изменено на белый */
-      border-radius: 4-x;
+      border-radius: 4px;
       font-size: 0.8rem;
     }
     .bets-table-container {
@@ -219,19 +219,19 @@
     <h1>Betting Manager</h1>
     <div class="form-group">
       <label for="bankroll">Начальный банкролл ($):</label>
-      <input v-model.number="initialBankroll" type="number" id="bankroll" placeholder="Введите банкролл" @focus="showKeyboardForInput">
+      <input v-model.number="initialBankroll" type="number" id="bankroll" placeholder="Введите банкролл" @focus="showKeyboardForInput" inputmode="none" readonly>
     </div>
     <div class="form-group">
       <label for="odds">Коэффициент:</label>
-      <input v-model.number="odds" type="number" step="0.01" id="odds" placeholder="Введите коэффициент" @focus="showKeyboardForInput">
+      <input v-model.number="odds" type="number" step="0.01" id="odds" placeholder="Введите коэффициент" @focus="showKeyboardForInput" inputmode="none" readonly>
     </div>
     <div class="form-group">
       <label for="probability">Вероятность (%):</label>
-      <input v-model.number="probability" type="number" id="probability" placeholder="Введите вероятность" @focus="showKeyboardForInput">
+      <input v-model.number="probability" type="number" id="probability" placeholder="Введите вероятность" @focus="showKeyboardForInput" inputmode="none" readonly>
     </div>
     <div class="form-group">
       <label for="customBet">Произвольная сумма ставки ($, опционально):</label>
-      <input v-model.number="customBet" type="number" id="customBet" placeholder="Введите сумму ставки" @focus="showKeyboardForInput">
+      <input v-model.number="customBet" type="number" id="customBet" placeholder="Введите сумму ставки" @focus="showKeyboardForInput" inputmode="none" readonly>
     </div>
     <button @click="addBet" class="export-btn">Добавить ставку</button>
     <button class="export-btn" @click="exportToTxt">Экспорт в TXT</button>
