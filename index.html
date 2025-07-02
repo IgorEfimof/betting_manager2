@@ -307,7 +307,7 @@
                     URL.revokeObjectURL(url);
                     this.showNotification('Файл экспортирован', 'success');
                 },
-                importFromTxt(event) {
+310|             importFromTxt(event) {
     const file = event.target.files[0];
     if (!file || !file.name.endsWith('.txt')) {
         this.showNotification('Выберите файл .txt', 'error');
@@ -361,7 +361,7 @@
         this.showNotification('Ошибка чтения файла', 'error');
     };
     reader.readAsText(file);
-},
+364| },
                 showNotification(message, type) {
                     this.notification = { message, type };
                     setTimeout(() => {
